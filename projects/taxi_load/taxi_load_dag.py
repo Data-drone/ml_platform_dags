@@ -12,7 +12,7 @@ default_args = {
   'email_on_failure': True,
   'email_on_retry': True,
   'retries': 2,
-  'retry_delay': timedelta(minutes=5),
+  'retry_delay': timedelta(minutes=2),
 }
 
 dag = DAG(  
@@ -35,7 +35,7 @@ load_taxi = PythonOperator(
 load_delta = SparkSubmitOperator(
     task_id='load_delta_lake',
     conn_id='SPARK_LOCAL_CLUSTER',
-    application='modules/delta_ingest.py',
+    application='taxi_load/modules/delta_ingest.py',
     packages='io.delta:delta-core_2.12:1.0.0,org.apache.hadoop:hadoop-aws:3.2.0',
     name='load_delta_lake',
     execution_timeout=timedelta(minutes=15),
