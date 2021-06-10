@@ -4,15 +4,17 @@ from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from datetime import datetime, timedelta
 from taxi_load.modules.ingest_data import load_data_to_minio
 
+AIRFLOW_PATH = "/root/airflow/ext_dags"
+
 default_args = {
   'owner': 'brian',
   'depends_on_past': False,
   'start_date': datetime(2021, 5, 25),
   'email': ['bpl.law@gmail.com'],
-  'email_on_failure': True,
-  'email_on_retry': True,
+  'email_on_failure': False,
+  'email_on_retry': False,
   'retries': 2,
-  'retry_delay': timedelta(minutes=2),
+  'retry_delay': timedelta(minutes=1),
 }
 
 dag = DAG(  
@@ -35,7 +37,7 @@ load_taxi = PythonOperator(
 load_delta = SparkSubmitOperator(
     task_id='load_delta_lake',
     conn_id='SPARK_LOCAL_CLUSTER',
-    application='taxi_load/modules/delta_ingest.py',
+    application=AIRFLOW_PATH + '/taxi_load/modules/delta_ingest.py',
     packages='io.delta:delta-core_2.12:1.0.0,org.apache.hadoop:hadoop-aws:3.2.0',
     name='load_delta_lake',
     execution_timeout=timedelta(minutes=15),
