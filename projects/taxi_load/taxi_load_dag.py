@@ -124,3 +124,52 @@ create_green_merged = SparkSubmitOperator(
 
 load_delta_pre2015 >> create_green_merged
 load_delta_2015_h1 >> create_green_merged
+
+# there is older yellow data too
+pre2015_yellow = ["yellow_tripdata_2013-08.csv",
+                "yellow_tripdata_2013-09.csv",
+                "yellow_tripdata_2013-10.csv",
+                "yellow_tripdata_2013-11.csv",
+                "yellow_tripdata_2013-12.csv",
+                "yellow_tripdata_2014-01.csv",
+                "yellow_tripdata_2014-02.csv",
+                "yellow_tripdata_2014-03.csv",
+                "yellow_tripdata_2014-04.csv",
+                "yellow_tripdata_2014-05.csv",
+                "yellow_tripdata_2014-06.csv",
+                "yellow_tripdata_2014-07.csv",
+                "yellow_tripdata_2014-08.csv",
+                "yellow_tripdata_2014-09.csv",
+                "yellow_tripdata_2014-10.csv",
+                "yellow_tripdata_2014-11.csv",
+                "yellow_tripdata_2014-12.csv"]
+
+load_pre2015_yellow = []
+for i, file in enumerate(pre2015_yellow):
+    load_pre2015_yellow.append( PythonOperator(
+        task_id='load_data_to_minio_yellow_pre2015_' + str(i),
+        python_callable=load_data_to_minio,
+        op_kwargs={'file_to_load': 'trip data/' + file,
+                    'file_save_name': file,
+                    'write_path_minio': 'raw_data/' + file},
+        dag=dag,
+        queue='queue_1'
+    ))
+
+load_delta_pre_2015_yellow = SparkSubmitOperator(
+    task_id='load_delta_lake_2015_h1_yellow',
+    conn_id='SPARK_LOCAL_CLUSTER',
+    application=AIRFLOW_PATH + '/taxi_load/modules/delta_ingest.py',
+    packages='io.delta:delta-core_2.12:1.0.0,org.apache.hadoop:hadoop-aws:3.2.0',
+    name='load_delta_lake_yellow',
+    execution_timeout=timedelta(minutes=15),
+    executor_memory='6g',
+    num_executors=2,
+    #application_args="{0} {1}".format(','.join(h1_2015_green), 'green_taxi_2015_h1'),
+    application_args=['/'.join(pre2015_yellow), 'yellow_taxi_pre2015'],
+    dag=dag,
+    queue='queue_2'
+)
+
+for item in load_pre2015_yellow:
+    item >> load_delta_pre_2015_yellow

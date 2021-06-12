@@ -26,7 +26,7 @@ spark = SparkSession \
     .getOrCreate()
 
 def process_table(read_path, table_name):
-    green_trip_data_pre2015_path = "s3a://storage/raw_data/green_tripdata_201[3-4]*.csv"
+    #green_trip_data_pre2015_path = "s3a://storage/raw_data/green_tripdata_201[3-4]*.csv"
     green_trip_data_pre2015 = spark.read.option("header", True).csv(read_path)
 
     green_trip_data_pre2015 = green_trip_data_pre2015.withColumnRenamed("Trip_type ", "trip_type")
