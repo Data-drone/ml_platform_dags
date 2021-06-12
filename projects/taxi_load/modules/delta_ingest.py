@@ -34,7 +34,10 @@ def process_table(read_path, table_name):
     green_trip_data_pre2015.write.format("delta").mode("overwrite").saveAsTable(table_name)
 
 # input args from airflow
-read_path = sys.argv[1]
+read_path = sys.argv[1].split('/')
 output_table = sys.argv[2]
+
+read_path = ['s3a://storage/raw_data/' + file for file in read_path]
+print(read_path)
 
 process_table(read_path, output_table)

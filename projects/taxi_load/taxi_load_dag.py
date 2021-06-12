@@ -63,7 +63,8 @@ load_delta_pre2015 = SparkSubmitOperator(
     execution_timeout=timedelta(minutes=15),
     executor_memory='6g',
     num_executors=2,
-    application_args="{0} {1}".format(str(pre2015_green), 'green_taxi_pre2015'),
+    #application_args="{0} {1}".format(','.join(pre2015_green), 'green_taxi_pre2015'),
+    application_args=['/'.join(pre2015_green), 'green_taxi_pre2015'],
     dag=dag,
     queue='queue_2'
 )
@@ -99,7 +100,8 @@ load_delta_2015_h1 = SparkSubmitOperator(
     execution_timeout=timedelta(minutes=15),
     executor_memory='6g',
     num_executors=2,
-    application_args="{0} {1}".format(str(h1_2015_green), 'green_taxi_2015_h1'),
+    #application_args="{0} {1}".format(','.join(h1_2015_green), 'green_taxi_2015_h1'),
+    application_args=['/'.join(h1_2015_green), 'green_taxi_2015_h1'],
     dag=dag,
     queue='queue_2'
 )
