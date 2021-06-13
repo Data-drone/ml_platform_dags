@@ -9,7 +9,7 @@ os.environ["PYSPARK_SUBMIT_ARGS"] = "--packages {0} pyspark-shell".format(packag
     
 spark = SparkSession \
     .builder \
-    .appName("Jupyter") \
+    .appName("Ingest to Raw Lake") \
     .config("spark.master", "spark://spark-master:7077") \
     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
@@ -22,6 +22,7 @@ spark = SparkSession \
     .config("spark.sql.warehouse.dir", "s3a://storage/warehouse") \
     .config("spark.hadoop.fs.s3a.path.style.access", "true") \
     .config("spark.hadoop.fs.s3a.connection.maximum", "50") \
+    .config("hive.metastore.uris", "http://hive_metastore:9083") \
     .enableHiveSupport() \
     .getOrCreate()
 

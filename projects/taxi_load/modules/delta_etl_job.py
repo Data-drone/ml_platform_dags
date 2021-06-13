@@ -8,7 +8,7 @@ os.environ["PYSPARK_SUBMIT_ARGS"] = "--packages {0} pyspark-shell".format(packag
     
 spark = SparkSession \
     .builder \
-    .appName("Load Data") \
+    .appName("Merge Raw") \
     .config("spark.master", "spark://spark-master:7077") \
     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
