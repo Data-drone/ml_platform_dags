@@ -58,9 +58,11 @@ load_delta_pre2015 = SparkSubmitOperator(
     task_id='load_delta_lake_pre2015',
     conn_id='SPARK_LOCAL_CLUSTER',
     application=AIRFLOW_PATH + '/taxi_load/modules/delta_ingest.py',
+    py_files=AIRFLOW_PATH + '/taxi_load/utils/spark_setup.py',
     packages='io.delta:delta-core_2.12:1.0.0,org.apache.hadoop:hadoop-aws:3.2.0',
     name='load_delta_lake',
     execution_timeout=timedelta(minutes=15),
+    executor_cores=4,
     executor_memory='6g',
     driver_memory='6g',
     num_executors=2,
@@ -96,11 +98,10 @@ load_delta_2015_h1 = SparkSubmitOperator(
     task_id='load_delta_lake_2015_h1',
     conn_id='SPARK_LOCAL_CLUSTER',
     application=AIRFLOW_PATH + '/taxi_load/modules/delta_ingest.py',
+    py_files=AIRFLOW_PATH + '/taxi_load/utils/spark_setup.py',
     packages='io.delta:delta-core_2.12:1.0.0,org.apache.hadoop:hadoop-aws:3.2.0',
-    name='load_delta_lake',
-    execution_timeout=timedelta(minutes=15),
-    driver_memory='6g',
     executor_memory='6g',
+    executor_cores=4,
     num_executors=2,
     #application_args="{0} {1}".format(','.join(h1_2015_green), 'green_taxi_2015_h1'),
     application_args=['/'.join(h1_2015_green), 'green_taxi_2015_h1'],
@@ -115,6 +116,7 @@ create_green_merged = SparkSubmitOperator(
     task_id='create_green_merged',
     conn_id='SPARK_LOCAL_CLUSTER',
     application=AIRFLOW_PATH + '/taxi_load/modules/delta_etl_job.py',
+    py_files=AIRFLOW_PATH + '/taxi_load/utils/spark_setup.py',
     packages='io.delta:delta-core_2.12:1.0.0,org.apache.hadoop:hadoop-aws:3.2.0',
     name='load_delta_lake',
     execution_timeout=timedelta(minutes=15),
@@ -163,11 +165,13 @@ load_delta_pre_2015_yellow = SparkSubmitOperator(
     task_id='load_delta_lake_2015_h1_yellow',
     conn_id='SPARK_LOCAL_CLUSTER',
     application=AIRFLOW_PATH + '/taxi_load/modules/delta_ingest.py',
+    py_files=AIRFLOW_PATH + '/taxi_load/utils/spark_setup.py',
     packages='io.delta:delta-core_2.12:1.0.0,org.apache.hadoop:hadoop-aws:3.2.0',
     name='load_delta_lake_yellow',
     execution_timeout=timedelta(minutes=15),
     driver_memory='8g',
     executor_memory='8g',
+    executor_cores=4,
     num_executors=2,
     #application_args="{0} {1}".format(','.join(h1_2015_green), 'green_taxi_2015_h1'),
     application_args=['/'.join(pre2015_yellow), 'yellow_taxi_pre2015'],
@@ -177,3 +181,22 @@ load_delta_pre_2015_yellow = SparkSubmitOperator(
 
 for item in load_pre2015_yellow:
     item >> load_delta_pre_2015_yellow
+
+clean_green = SparkSubmitOperator(
+    task_id='generate_clean_green_table',
+    conn_id='SPARK_LOCAL_CLUSTER',
+    application=AIRFLOW_PATH + '/taxi_load/modules/delta_green_schema.py',
+    py_files=AIRFLOW_PATH + '/taxi_load/utils/spark_setup.py',
+    packages='io.delta:delta-core_2.12:1.0.0,org.apache.hadoop:hadoop-aws:3.2.0',
+    name='generate_clean_green_table',
+    execution_timeout=timedelta(minutes=15),
+    driver_memory='8g',
+    executor_memory='8g',
+    executor_cores=4,
+    num_executors=3,
+    #application_args="{0} {1}".format(','.join(h1_2015_green), 'green_taxi_2015_h1'),
+    dag=dag,
+    queue='queue_2'
+)
+
+create_green_merged >> clean_green
