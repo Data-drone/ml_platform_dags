@@ -1,5 +1,6 @@
 # the spark_setup file gets loaded in from py-files in spark submit
 from spark_setup import get_spark
+import pyspark.sql.functions as F
 
 spark = get_spark()
 spark = spark \
