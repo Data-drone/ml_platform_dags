@@ -12,8 +12,8 @@ def get_spark():
     """
 
     # this is done via the packages part of SparkSubmitOperator
-    #packages = """io.delta:delta-core_2.12:1.0.0,org.apache.hadoop:hadoop-aws:3.2.0"""
-    #os.environ["PYSPARK_SUBMIT_ARGS"] = "--packages {0} pyspark-shell".format(packages)
+    packages = """io.delta:delta-core_2.12:1.0.0,org.apache.hadoop:hadoop-aws:3.2.0"""
+    os.environ["PYSPARK_SUBMIT_ARGS"] = "--packages {0} pyspark-shell".format(packages)
     
     spark = SparkSession \
             .builder \
@@ -24,7 +24,7 @@ def get_spark():
             .config("spark.hadoop.fs.s3a.secret.key", os.environ['MINIO_SECRET_KEY']) \
             .config("spark.hadoop.fs.s3a.endpoint", "minio:9000") \
             .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false") \
-            .config("spark.hadoop.fs.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+            .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
             .config("spark.hadoop.metastore.catalog.default", "hive") \
             .config("spark.sql.warehouse.dir", "s3a://storage/warehouse") \
             .config("spark.hadoop.fs.s3a.path.style.access", "true") \
