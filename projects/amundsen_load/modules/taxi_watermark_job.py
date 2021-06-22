@@ -2,6 +2,7 @@ import os
 from pyhocon import ConfigFactory
 import logging
 import textwrap
+import argparse
 
 from databuilder.extractor.hive_table_metadata_extractor import HiveTableMetadataExtractor
 from databuilder.extractor.sql_alchemy_extractor import SQLAlchemyExtractor
@@ -14,18 +15,26 @@ from databuilder.task.task import DefaultTask
 from databuilder.transformer.base_transformer import NoopTransformer
 from extractors.sqlalchemy_batch_extractor import SQLAlchemyBatchExtractor
 from databuilder.transformer.dict_to_model import MODEL_CLASS, DictToModel
+import sys
 
-LOGGER = logging.getLogger(__name__)
-logging.getLogger().addHandler(logging.StreamHandler())
+LOGGER = logging.getLogger("mainModule")
+LOGGER.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+LOGGER.addHandler(handler)
 
 def connection_string():
     return 'hive://root@spark-thrift-server:10000/'
 
 def create_table_wm_job(**kwargs):
 
-    sql = "SHOW TABLES"
+    #sql = "SHOW TABLES"
+    sql = kwargs['templates_dict'].get('extract_table_list')
 
-    extractor_sql = "{0}(pickup_datetime)".format(kwargs['templates_dict'].get('agg_func'))
+    extractor_sql = "{func}(pickup_datetime)".format(func=kwargs['templates_dict'].get('agg_func'))
 
     LOGGER.info('Show Tables SQL query: %s', sql)
     LOGGER.info('Extractor SQL query: %s', extractor_sql)
@@ -69,11 +78,24 @@ def create_table_wm_job(**kwargs):
 
 if __name__ == '__main__':
 
-    templates_dict={'agg_func': 'max',
-                    'watermark_type': '"high_watermark"',
+    parser = argparse.ArgumentParser(description='Extract High Watermark from Delta Tables')
+    parser.add_argument('agg_func', type=str, default='max', 
+                        help='aggregation function for datetime col (min/max)')
+
+    parser.add_argument('watermark_type', type=str, default='high_watermark',
+                        choices=['high_watermark', 'low_watermark'],
+                        help='choose field where date gets recorded')
+
+    args = parser.parse_args()
+
+    LOGGER.info("agg_func: {0}, watermark: {1}".format(args.agg_func, args.watermark_type))
+
+    templates_dict={'agg_func': args.agg_func,
+                    'watermark_type': '{mark}'.format(mark=args.watermark_type),
                     'database': 'default',
                     'schema': 'default',
-                    'cluster': 'my_delta_lake'}
+                    'cluster': 'my_delta_environment',
+                    'extract_table_list': "SHOW TABLES"}
     
 
     create_table_wm_job(
