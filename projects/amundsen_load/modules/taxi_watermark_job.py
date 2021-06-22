@@ -13,6 +13,7 @@ from databuilder.publisher.neo4j_csv_publisher import Neo4jCsvPublisher
 from databuilder.task.task import DefaultTask
 from databuilder.transformer.base_transformer import NoopTransformer
 from sqlalchemy_batch_extractor import SQLAlchemyBatchExtractor
+from databuilder.transformer.dict_to_model import MODEL_CLASS, DictToModel
 
 LOGGER = logging.getLogger(__name__)
 
@@ -36,14 +37,15 @@ def create_table_wm_job(**kwargs):
 
     task = DefaultTask(extractor=hwm_extractor,
                        loader=csv_loader,
-                       transformer=NoopTransformer())
+                       transformer=DictToModel())
 
     job_config = ConfigFactory.from_dict({
         f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.CONN_STRING}': connection_string(),
         f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.EXTRACT_TBL_LIST_QRY}': sql,
         f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.TIMESTAMP_COL}': 'pickup_datetime',
         f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.CONNECT_ARGS}': {'auth': 'NOSASL'},
-        'extractor.sqlalchemy.model_class': 'databuilder.models.watermark.Watermark',
+        f'transformer.dict_to_model.{MODEL_CLASS}': 'databuilder.models.watermark.Watermark',
+        #'extractor.sqlalchemy.model_class': 'databuilder.models.watermark.Watermark',
         f'loader.filesystem_csv_neo4j.{FsNeo4jCSVLoader.NODE_DIR_PATH}': node_files_folder,
         f'loader.filesystem_csv_neo4j.{FsNeo4jCSVLoader.RELATION_DIR_PATH}': relationship_files_folder,
         f'publisher.neo4j.{neo4j_csv_publisher.NODE_FILES_DIR}': node_files_folder,
@@ -51,6 +53,7 @@ def create_table_wm_job(**kwargs):
         f'publisher.neo4j.{neo4j_csv_publisher.NEO4J_END_POINT_KEY}': kwargs['neo4j_endpoint'],
         f'publisher.neo4j.{neo4j_csv_publisher.NEO4J_USER}': kwargs['neo4j_user'],
         f'publisher.neo4j.{neo4j_csv_publisher.NEO4J_PASSWORD}': kwargs['neo4j_password'],
+        f'publisher.neo4j.{neo4j_csv_publisher.JOB_PUBLISH_TAG}': 'wm_test',
     })
     job = DefaultJob(conf=job_config,
                      task=task,
