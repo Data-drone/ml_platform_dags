@@ -51,6 +51,19 @@ ingest_base_data = DockerOperator(
   dag=dag
 )
 
+update_highwatermark = DockerOperator(
+  task_id= 'update_default_highwatermark',
+  image='amundsen_load',
+  container_name='task__amundsen_update_default_highwatermark',
+  api_version='auto',
+  auto_remove=True,
+  docker_url='unix://var/run/docker.sock',
+  entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/taxi_watermark_job.py"],
+  network_mode="datalake_ml_platform",
+  queue='queue_1',
+  dag=dag
+)
+
 update_elasticsearch = DockerOperator(
   task_id= 'update_elastisearch',
   image='amundsen_load',
@@ -69,4 +82,7 @@ end_dag = DummyOperator(
         dag=dag
         )        
 
-start_dag >> ingest_base_data >> update_elasticsearch >> end_dag
+start_dag >> ingest_base_data
+
+ingest_base_data >> update_highwatermark >> update_elasticsearch
+update_elasticsearch >> end_dag

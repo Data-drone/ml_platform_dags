@@ -12,22 +12,24 @@ from databuilder.publisher import neo4j_csv_publisher
 from databuilder.publisher.neo4j_csv_publisher import Neo4jCsvPublisher
 from databuilder.task.task import DefaultTask
 from databuilder.transformer.base_transformer import NoopTransformer
-from sqlalchemy_batch_extractor import SQLAlchemyBatchExtractor
+from extractors.sqlalchemy_batch_extractor import SQLAlchemyBatchExtractor
 from databuilder.transformer.dict_to_model import MODEL_CLASS, DictToModel
 
 LOGGER = logging.getLogger(__name__)
+logging.getLogger().addHandler(logging.StreamHandler())
 
 def connection_string():
     return 'hive://root@spark-thrift-server:10000/'
-
 
 def create_table_wm_job(**kwargs):
 
     sql = "SHOW TABLES"
 
+    extractor_sql = "{0}(pickup_datetime)".format(kwargs['templates_dict'].get('agg_func'))
 
-    LOGGER.info('SQL query: %s', sql)
-
+    LOGGER.info('Show Tables SQL query: %s', sql)
+    LOGGER.info('Extractor SQL query: %s', extractor_sql)
+    
     tmp_folder = '/var/tmp/amundsen/table_{hwm}'.format(hwm=kwargs['templates_dict'].get('watermark_type').strip("\""))
     node_files_folder = f'{tmp_folder}/nodes'
     relationship_files_folder = f'{tmp_folder}/relationships'
@@ -42,7 +44,11 @@ def create_table_wm_job(**kwargs):
     job_config = ConfigFactory.from_dict({
         f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.CONN_STRING}': connection_string(),
         f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.EXTRACT_TBL_LIST_QRY}': sql,
-        f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.TIMESTAMP_COL}': 'pickup_datetime',
+        f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.TIMESTAMP_EXTRACTOR}': extractor_sql,
+        f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.DATABASE}': kwargs['templates_dict'].get('database'),
+        f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.SCHEMA}': kwargs['templates_dict'].get('schema'),
+        f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.PART_TYPE}': kwargs['templates_dict'].get('watermark_type'),
+        f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.CLUSTER}': kwargs['templates_dict'].get('cluster'),        
         f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.CONNECT_ARGS}': {'auth': 'NOSASL'},
         f'transformer.dict_to_model.{MODEL_CLASS}': 'databuilder.models.watermark.Watermark',
         #'extractor.sqlalchemy.model_class': 'databuilder.models.watermark.Watermark',
@@ -64,7 +70,10 @@ def create_table_wm_job(**kwargs):
 if __name__ == '__main__':
 
     templates_dict={'agg_func': 'max',
-                        'watermark_type': '"high_watermark"'}
+                    'watermark_type': '"high_watermark"',
+                    'database': 'default',
+                    'schema': 'default',
+                    'cluster': 'my_delta_lake'}
     
 
     create_table_wm_job(
