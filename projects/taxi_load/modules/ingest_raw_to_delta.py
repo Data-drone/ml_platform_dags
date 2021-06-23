@@ -9,7 +9,7 @@ logger = logging.getLogger('py4j')
 
 spark = get_spark()    
 spark = spark \
-    .appName("Ingest to Raw Lake") \
+    .appName("Ingest to Raw Zone") \
     .enableHiveSupport() \
     .getOrCreate()
 

@@ -4,15 +4,15 @@ import pyspark.sql.functions as F
 
 spark = get_spark()
 spark = spark \
-    .appName("Clean Green") \
+    .appName("Clean Green Table") \
     .enableHiveSupport() \
     .getOrCreate()
 
-green_merged = spark.sql("select * from green_merged")
+green_merged = spark.sql("select * from raw.green_merged")
 
 green_processed = green_merged \
-    .withColumn('pickup_datetime', F.to_timestamp('lpep_pickup_datetime')) \
-    .withColumn('dropoff_datetime', F.to_timestamp('Lpep_dropoff_datetime')) \
+    .withColumn('pickup_datetime', F.to_timestamp('pickup_datetime')) \
+    .withColumn('dropoff_datetime', F.to_timestamp('dropoff_datetime')) \
     .withColumn('rate_code_id', F.col('RateCodeID').cast('integer')) \
     .withColumn('pickup_longitude', F.col('Pickup_longitude').cast('float')) \
     .withColumn('pickup_latitude', F.col('Pickup_latitude').cast('float')) \
@@ -30,7 +30,11 @@ green_processed = green_merged \
     .withColumn('payment_type', F.col('Payment_type').cast('integer')) \
     .withColumn('trip_type', F.col('trip_type').cast('integer')) \
     .withColumn('improvement_surcharge', F.col('improvement_surcharge').cast('float')) \
+    .withColumn('data_source', F.lit('green')) \
+    .withColumn('pickup_year', F.year('pickup_datetime')) \
+    .withColumn('pickup_month', F.month('pickup_datetime')) \
     .select(
+        'data_source', 'pickup_year', 'pickup_month',
         F.col('VendorID').alias('vendor_id'), 'pickup_datetime', 'dropoff_datetime',
         F.col('Store_and_fwd_flag').alias('store_and_fwd_flag'), 'rate_code_id',
         'pickup_longitude', 'pickup_latitude', 'dropoff_longitude', 'dropoff_latitude',
@@ -38,4 +42,6 @@ green_processed = green_merged \
         'tolls_amount', 'ehail_fee', 'total_amount', 'payment_type', 'trip_type', 'improvement_surcharge'
     )
 
-green_processed.write.format("delta").mode("overwrite").saveAsTable("green_clean")
+spark.sql("CREATE DATABASE IF NOT EXISTS clean LOCATION 's3a://storage/warehouse/clean'")
+
+green_processed.write.partitionBy('pickup_year', 'pickup_month').format("delta").mode("overwrite").saveAsTable("clean.green_clean")

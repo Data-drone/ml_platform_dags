@@ -13,6 +13,13 @@ def load_data_to_minio(file_to_load: str, file_save_name: str, write_path_minio:
 
     s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))
     #bucket = s3.Bucket('nyc-tlc')
+
+    ### TODO add section to download if doesn't exist
+
+
+
+    ###
+
     with open(file_save_name, 'wb') as f:
         s3.download_fileobj('nyc-tlc', file_to_load, f)
 
