@@ -20,7 +20,10 @@ Amundsen requires a sequence of steps in order to properly surface metadata and 
 - Prototype: Extract everything from DeltaLake
 - Need to check if there is extra config needed
 
-2. Not implemented yet
+2. Update Watermarks and Profile columns
+
+- Added in watermarking process
+- TODO Column Profiling using Pandas Profiling
     
 
 3. Update the Elasticsearch index
@@ -51,13 +54,13 @@ build docker from amundsen_load root
 ```bash
 
 
-docker build -f docker/Dockerfile -t amundsen_load 
+docker build -f docker/Dockerfile . -t amundsen_load 
 
 ```
 
 ```bash
 
 # quick testing
-docker run -it --env-file=common.env amundsen_load
+docker run -it --env-file=common.env --network=datalake_ml_platform amundsen_load
 
 ```
