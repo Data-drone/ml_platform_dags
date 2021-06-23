@@ -84,6 +84,8 @@ def profile_deltalake_tables(neo4j_endpoint: str, neo4j_user: str, neo4j_passwor
 
     job.launch()
 
+    spark.stop()
+
 
 if __name__=='__main__':
 

@@ -32,4 +32,3 @@ def get_spark():
             .config("spark.hive.metastore.uris", "thrift://172.30.0.4:9083")
 
     return spark
-        

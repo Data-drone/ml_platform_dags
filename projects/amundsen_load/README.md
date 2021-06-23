@@ -15,21 +15,22 @@ Amundsen requires a sequence of steps in order to properly surface metadata and 
 
 ## Processors
 
-1. Ingest base data to Neo4J
+1. Ingest base data to Neo4J `ingest_base_data.py`
+   - Prototype: Extract everything from DeltaLake
+   - Need to check if there is extra config needed
 
-- Prototype: Extract everything from DeltaLake
-- Need to check if there is extra config needed
-
-2. Update Watermarks and Profile columns
-
-- Added in watermarking process
-- TODO Column Profiling using Pandas Profiling
+2. Update Watermarks and Profile columns `taxi_watermark_job.py`
+   - Added in watermarking process
+   - Column Profiling using Pandas Profiling works
+   - Need to adjust to run in bulk across tables
+   - Not in main DAG yet
     
-
-3. Update the Elasticsearch index
+3. Update the Elasticsearch index `update_elasticsearch.py`
    - probably currently imports too many libraries
 
-4. Not implemented yet
+4. Remove stale data based on TTY `clean_stale_data.py`
+   - Need to update to run across different schemas maybe?
+   - Not in main DAG yet
 
 ## Requirements
 

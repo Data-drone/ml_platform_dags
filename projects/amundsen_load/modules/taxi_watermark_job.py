@@ -18,10 +18,10 @@ from databuilder.transformer.dict_to_model import MODEL_CLASS, DictToModel
 import sys
 
 LOGGER = logging.getLogger("mainModule")
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.DEBUG)
+handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 LOGGER.addHandler(handler)
