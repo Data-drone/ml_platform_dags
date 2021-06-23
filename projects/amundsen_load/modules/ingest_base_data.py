@@ -19,6 +19,7 @@ from databuilder.task.task import DefaultTask
 from utils import get_spark
 
 import os
+import argparse
 
 ## To see the loggin data before
 import logging
@@ -26,7 +27,9 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 def create_delta_lake_job_config(neo4j_endpoint, neo4j_user, neo4j_password,
-                                cluster_key = 'my_delta_environment', database = 'default', schema_list = [], exclude_list = []    ):
+                                cluster_key = 'my_delta_environment', database = 'default', 
+                                schema_list = [], exclude_list = []    ):
+
     tmp_folder = '/var/tmp/amundsen/table_metadata'
     node_files_folder = f'{tmp_folder}/nodes/'
     relationship_files_folder = f'{tmp_folder}/relationships/'
@@ -82,8 +85,24 @@ def ingest_deltalake(neo4j_endpoint: str, neo4j_user: str, neo4j_password: str):
 
 if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser(description='Extract DeltaLake Metadata')
+    parser.add_argument('--cluster_key', metavar='cluster_key', type=str, default='my_delta_environment',
+                        help="The name of the cluster that we are parsing")
+    
+    parser.add_argument('--database', metavar='database', type=str, default='default')
+
+    parser.add_argument('--schema_include', metavar='schema', action="extend", nargs="+", 
+                        type=str, default='', help='Schemas that we will be parsing to find tables eg (raw/clean/processed)')
+    
+    parser.add_argument('--exclude_list', metavar='exclude_list', action="extend", nargs="+", 
+                        type=str, default='')
+
+    args = parser.parse_args()
+
     neo_endpoint = os.environ['NEO4J_ENDPOINT']
     neo_user = os.environ['NEO4J_USER']
     neo_password = os.environ['NEO4J_PASSWORD']
 
-    ingest_deltalake(neo_endpoint, neo_user, neo_password)
+    ingest_deltalake(neo_endpoint, neo_user, neo_password,
+                        cluster_key = args.cluster_key, database = args.database, 
+                        schema_list = args.schema, exclude_list = [])
