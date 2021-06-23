@@ -10,7 +10,7 @@ spark = spark \
 clean_green = spark.sql("select * from clean.green_clean")
 clean_yellow = spark.sql("select * from clean.yellow_clean")
 
-merged_taxi_table = clean_green.union(clean_yellow)
+merged_taxi_table = clean_green.unionByName(clean_yellow, allowMissingColumns=True)
 
 spark.sql("CREATE DATABASE IF NOT EXISTS processed LOCATION 's3a://storage/warehouse/processed'")
 
