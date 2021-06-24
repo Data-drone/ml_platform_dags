@@ -46,33 +46,90 @@ ingest_base_data = DockerOperator(
   api_version='auto',
   auto_remove=True,
   docker_url='unix://var/run/docker.sock',
+  entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/ingest_delta_base_metadata.py --schema raw --schema clean --schema processed"],
   network_mode="datalake_ml_platform",
   queue='queue_1',
   dag=dag
 )
 
-update_high_watermark = DockerOperator(
-  task_id= 'update_default_high_watermark',
+update_high_watermark_raw = DockerOperator(
+  task_id= 'update_default_high_watermark_raw',
   image='amundsen_load',
   container_name='task__amundsen_update_default_highwatermark',
   api_version='auto',
   auto_remove=True,
   docker_url='unix://var/run/docker.sock',
-  entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/taxi_watermark_job.py max high_watermark"],
+  entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/calculate_delta_wm_metadata.py max high_watermark default raw"],
   #command="--agg_func max --watermark_type high_watermark",
   network_mode="datalake_ml_platform",
   queue='queue_1',
   dag=dag
 )
 
-update_low_watermark = DockerOperator(
-  task_id= 'update_default_low_watermark',
+update_low_watermark_raw = DockerOperator(
+  task_id= 'update_default_low_watermark_raw',
   image='amundsen_load',
   container_name='task__amundsen_update_default_lowwatermark',
   api_version='auto',
   auto_remove=True,
   docker_url='unix://var/run/docker.sock',
-  entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/taxi_watermark_job.py min low_watermark"],
+  entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/calculate_delta_wm_metadata.py min low_watermark default raw"],
+  #command=["min", "low_watermark"],
+  network_mode="datalake_ml_platform",
+  queue='queue_1',
+  dag=dag
+)
+
+update_high_watermark_clean = DockerOperator(
+  task_id= 'update_default_high_watermark_clean',
+  image='amundsen_load',
+  container_name='task__amundsen_update_default_highwatermark',
+  api_version='auto',
+  auto_remove=True,
+  docker_url='unix://var/run/docker.sock',
+  entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/calculate_delta_wm_metadata.py max high_watermark default clean"],
+  #command="--agg_func max --watermark_type high_watermark",
+  network_mode="datalake_ml_platform",
+  queue='queue_1',
+  dag=dag
+)
+
+update_low_watermark_clean = DockerOperator(
+  task_id= 'update_default_low_watermark_clean',
+  image='amundsen_load',
+  container_name='task__amundsen_update_default_lowwatermark',
+  api_version='auto',
+  auto_remove=True,
+  docker_url='unix://var/run/docker.sock',
+  entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/calculate_delta_wm_metadata.py min low_watermark default clean"],
+  #command=["min", "low_watermark"],
+  network_mode="datalake_ml_platform",
+  queue='queue_1',
+  dag=dag
+)
+
+update_high_watermark_processed = DockerOperator(
+  task_id= 'update_default_high_watermark_processed',
+  image='amundsen_load',
+  container_name='task__amundsen_update_default_highwatermark',
+  api_version='auto',
+  auto_remove=True,
+  docker_url='unix://var/run/docker.sock',
+  entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/calculate_delta_wm_metadata.py max high_watermark default processed"],
+  #command="--agg_func max --watermark_type high_watermark",
+  network_mode="datalake_ml_platform",
+  queue='queue_1',
+  dag=dag
+)
+
+update_low_watermark_processed = DockerOperator(
+  task_id= 'update_default_low_watermark_processed',
+  image='amundsen_load',
+  container_name='task__amundsen_update_default_lowwatermark',
+  api_version='auto',
+  auto_remove=True,
+  docker_url='unix://var/run/docker.sock',
+  entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/calculate_delta_wm_metadata.py min low_watermark default processed"],
   #command=["min", "low_watermark"],
   network_mode="datalake_ml_platform",
   queue='queue_1',
@@ -86,7 +143,7 @@ update_elasticsearch = DockerOperator(
   api_version='auto',
   auto_remove=True,
   docker_url='unix://var/run/docker.sock',
-  entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/update_elasticsearch.py"],
+  entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/update_es_indices.py"],
   network_mode="datalake_ml_platform",
   queue='queue_1',
   dag=dag
@@ -99,7 +156,11 @@ end_dag = DummyOperator(
 
 start_dag >> ingest_base_data
 
-ingest_base_data >> update_high_watermark >> update_elasticsearch
-ingest_base_data >> update_low_watermark >> update_elasticsearch
+ingest_base_data >> update_high_watermark_raw >> update_elasticsearch
+ingest_base_data >> update_low_watermark_raw >> update_elasticsearch
+ingest_base_data >> update_high_watermark_clean >> update_elasticsearch
+ingest_base_data >> update_low_watermark_clean >> update_elasticsearch
+ingest_base_data >> update_high_watermark_processed >> update_elasticsearch
+ingest_base_data >> update_low_watermark_processed >> update_elasticsearch
 
 update_elasticsearch >> end_dag

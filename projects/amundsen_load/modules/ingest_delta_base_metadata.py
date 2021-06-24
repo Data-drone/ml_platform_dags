@@ -52,7 +52,9 @@ def create_delta_lake_job_config(neo4j_endpoint, neo4j_user, neo4j_password,
     return job_config
 
 
-def ingest_deltalake(neo4j_endpoint: str, neo4j_user: str, neo4j_password: str):
+def ingest_deltalake(neo4j_endpoint: str, neo4j_user: str, neo4j_password: str,
+                    cluster_key: str, database: str, 
+                        schema_list: list, exclude_list: list):
     """
     Ingests metadata from our delta lake
 
@@ -72,7 +74,8 @@ def ingest_deltalake(neo4j_endpoint: str, neo4j_user: str, neo4j_password: str):
             .enableHiveSupport() \
             .getOrCreate()
 
-    job_config = create_delta_lake_job_config(neo4j_endpoint, neo4j_user, neo4j_password)
+    job_config = create_delta_lake_job_config(neo4j_endpoint, neo4j_user, neo4j_password,
+                                    cluster_key, database, schema_list, exclude_list)
     dExtractor = DeltaLakeMetadataExtractor()
     dExtractor.set_spark(spark)
     job = DefaultJob(conf=job_config,
@@ -91,11 +94,11 @@ if __name__ == '__main__':
     
     parser.add_argument('--database', metavar='database', type=str, default='default')
 
-    parser.add_argument('--schema_include', metavar='schema', action="extend", nargs="+", 
-                        type=str, default='', help='Schemas that we will be parsing to find tables eg (raw/clean/processed)')
+    ## these require use of python 3.8+
+    parser.add_argument('--schema', metavar='schema', action="append", 
+                        help='Schemas that we will be parsing to find tables eg (raw/clean/processed)')
     
-    parser.add_argument('--exclude_list', metavar='exclude_list', action="extend", nargs="+", 
-                        type=str, default='')
+    parser.add_argument('--exclude_list', metavar='exclude_list', action="append")
 
     args = parser.parse_args()
 
@@ -105,4 +108,4 @@ if __name__ == '__main__':
 
     ingest_deltalake(neo_endpoint, neo_user, neo_password,
                         cluster_key = args.cluster_key, database = args.database, 
-                        schema_list = args.schema, exclude_list = [])
+                        schema_list = args.schema, exclude_list = args.exclude_list)
