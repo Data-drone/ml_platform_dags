@@ -32,7 +32,7 @@ def get_spark():
             .config("spark.sql.warehouse.dir", "s3a://storage/warehouse") \
             .config("spark.hadoop.fs.s3a.path.style.access", "true") \
             .config("spark.hadoop.fs.s3a.connection.maximum", "50") \
-            .config("spark.hive.metastore.uris", "thrift://172.30.0.4:9083")
+            .config("spark.hive.metastore.uris", "thrift://"+os.environ['HIVE_METASTORE_ADDRESS']+":9083")
 
     return spark
         
