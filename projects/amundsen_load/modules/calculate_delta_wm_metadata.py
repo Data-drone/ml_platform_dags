@@ -4,15 +4,11 @@ import logging
 import textwrap
 import argparse
 
-from databuilder.extractor.hive_table_metadata_extractor import HiveTableMetadataExtractor
-from databuilder.extractor.sql_alchemy_extractor import SQLAlchemyExtractor
 from databuilder.job.job import DefaultJob
 from databuilder.loader.file_system_neo4j_csv_loader import FsNeo4jCSVLoader
-from databuilder.models.table_metadata import DESCRIPTION_NODE_LABEL
 from databuilder.publisher import neo4j_csv_publisher
 from databuilder.publisher.neo4j_csv_publisher import Neo4jCsvPublisher
 from databuilder.task.task import DefaultTask
-from databuilder.transformer.base_transformer import NoopTransformer
 from extractors.sqlalchemy_batch_extractor import SQLAlchemyBatchExtractor
 from databuilder.transformer.dict_to_model import MODEL_CLASS, DictToModel
 import sys
@@ -50,6 +46,8 @@ def create_table_wm_job(**kwargs):
                        loader=csv_loader,
                        transformer=DictToModel())
 
+    LOGGER.info('Database setting prior to dict: %s', kwargs['templates_dict'].get('database'))
+
     job_config = ConfigFactory.from_dict({
         f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.CONN_STRING}': connection_string(),
         f'extractor.sqlalchemybatch.{SQLAlchemyBatchExtractor.EXTRACT_TBL_LIST_QRY}': sql,
@@ -70,6 +68,9 @@ def create_table_wm_job(**kwargs):
         f'publisher.neo4j.{neo4j_csv_publisher.NEO4J_PASSWORD}': kwargs['neo4j_password'],
         f'publisher.neo4j.{neo4j_csv_publisher.JOB_PUBLISH_TAG}': 'wm_test',
     })
+
+    LOGGER.info("Job Config Database {0}".format(job_config.get('extractor.sqlalchemybatch')))
+
     job = DefaultJob(conf=job_config,
                      task=task,
                      publisher=Neo4jCsvPublisher())
@@ -105,7 +106,7 @@ if __name__ == '__main__':
                     'schema': args.schema,
                     'cluster': 'my_delta_environment',
                     'extract_table_list': "SHOW TABLES IN " + args.schema}
-    
+
 
     create_table_wm_job(
         neo4j_endpoint=os.environ['NEO4J_ENDPOINT'],

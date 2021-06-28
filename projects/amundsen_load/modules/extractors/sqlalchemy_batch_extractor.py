@@ -9,6 +9,7 @@ from databuilder import Scoped
 from databuilder.extractor.base_extractor import Extractor
 from sqlalchemy.orm import sessionmaker
 import pandas as pd
+import pprint
 
 import logging
 
@@ -38,12 +39,23 @@ class SQLAlchemyBatchExtractor(Extractor):
         #= conf.get_string(SQLAlchemyBatchExtractor.EXTRACT_TBL_LIST_QRY) 
         self.timestamp_extractor = conf.get_string(SQLAlchemyBatchExtractor.TIMESTAMP_EXTRACTOR)
 
-        self.database = conf.get_string(SQLAlchemyBatchExtractor.DATABASE)
+        LOGGER.info("database config entered: {0}".format(conf.get_string(SQLAlchemyBatchExtractor.DATABASE)))
+
+        # this should really come from the variable
+        ## but possibly due to misunderstanding of how hocon works in
+        ## calculate_delta_wm_metadata we are getting the schema fed in rather than the database
+        self.database = 'default' #conf.get_string(SQLAlchemyBatchExtractor.DATABASE)
+        
+        LOGGER.info("Database input setting is {0}".format(self.database))
+        
+
         self.schema = conf.get_string(SQLAlchemyBatchExtractor.SCHEMA)
         self.part_type = conf.get_string(SQLAlchemyBatchExtractor.PART_TYPE)
         self.cluster  = conf.get_string(SQLAlchemyBatchExtractor.CLUSTER)
 
         self.extract_tbl_list = "SHOW TABLES IN {0}".format(conf.get_string(SQLAlchemyBatchExtractor.SCHEMA))
+        
+        #LOGGER.info("Database input setting is {0}".format(self.database))
         
         # Not quite sure what model_class is
         model_class = conf.get('model_class', None)
@@ -53,6 +65,7 @@ class SQLAlchemyBatchExtractor(Extractor):
             self.model_class = getattr(mod, class_name)
 
         LOGGER.info("starting processing")
+        
         self.connection = self._get_connection()
         self.query_list = self._generate_query_list()
         self._execute_query()
@@ -142,12 +155,15 @@ class SQLAlchemyBatchExtractor(Extractor):
 
         results_processed_2 = [ {'create_time': y, 
                                     'database': self.database, 
-                                    'schema': self.schema, 'table_name': x, 
+                                    'schema': self.schema, 
+                                    'table_name': x, 
                                     'part_name': 'ds='+str(y), 
                                     'part_type': self.part_type,
                                     'cluster': self.cluster} \
                                 for (x,y) in results_processed ]
         
+        my_complex_dict = pprint.pformat(results_processed_2[0])
+        LOGGER.info(f"wm job results dict:\n{my_complex_dict}")
 
         self.iter = iter(results_processed_2)
 
