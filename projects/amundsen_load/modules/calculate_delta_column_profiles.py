@@ -73,6 +73,9 @@ def profile_deltalake_tables(neo4j_endpoint: str, neo4j_user: str, neo4j_passwor
     
     df = df.toPandas()
 
+    ## select numerics only at the moment the column profiler only supports numerics
+    df = df.select_dtypes(include='number')
+
     report = df.profile_report(sort=None, minimal=True)
     report.to_file(report_file)
 
@@ -90,10 +93,17 @@ def profile_deltalake_tables(neo4j_endpoint: str, neo4j_user: str, neo4j_passwor
 if __name__=='__main__':
 
     parser = argparse.ArgumentParser(description='Profile a table')
-    parser.add_argument('--database', metavar='database', type=str)
+
+
+    # For our deltalake structure, we don't need database schema is what matters
+    parser.add_argument('--database', metavar='database', type=str, default='default')
+    
+    # we should adjust this to run on a per schema basis?
+    parser.add_argument('--schema', metavar='schema', type=str, default='default')
+    
+    # speccing tables as well makes it a bit harder? 
     parser.add_argument('--table', metavar='table', type=str)
-    parser.add_argument('--schema', metavar='schema', type=str)
-    parser.add_argument('--cluster', metavar='cluster', type=str)
+    parser.add_argument('--cluster', metavar='cluster', type=str, default='my_delta_environment')
 
 
     args = parser.parse_args()
