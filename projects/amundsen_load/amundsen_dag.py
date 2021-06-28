@@ -136,6 +136,20 @@ update_low_watermark_processed = DockerOperator(
   dag=dag
 )
 
+load_clean_table_stats = DockerOperator(
+  task_id= 'profile_clean_tables',
+  image='amundsen_load',
+  container_name='task__amundsen_profile_clean_tables',
+  api_version='auto',
+  auto_remove=True,
+  docker_url='unix://var/run/docker.sock',
+  entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/calculate_schema_column_profiles.py --schema clean"],
+  #command=["min", "low_watermark"],
+  network_mode="ml_platform",
+  queue='queue_1',
+  dag=dag
+)
+
 update_elasticsearch = DockerOperator(
   task_id= 'update_elastisearch',
   image='amundsen_load',
@@ -144,6 +158,19 @@ update_elasticsearch = DockerOperator(
   auto_remove=True,
   docker_url='unix://var/run/docker.sock',
   entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/update_es_indices.py"],
+  network_mode="ml_platform",
+  queue='queue_1',
+  dag=dag
+)
+
+clear_stale_es_data = DockerOperator(
+  task_id= 'clear_stale_es_data',
+  image='amundsen_load',
+  container_name='task__amundsen_clear_stale_es',
+  api_version='auto',
+  auto_remove=True,
+  docker_url='unix://var/run/docker.sock',
+  entrypoint=["/scripts/modules/load_env_run_script.sh", "/scripts/modules/clear_stale_neo4j_data.py"],
   network_mode="ml_platform",
   queue='queue_1',
   dag=dag
@@ -163,4 +190,4 @@ ingest_base_data >> update_low_watermark_clean >> update_elasticsearch
 ingest_base_data >> update_high_watermark_processed >> update_elasticsearch
 ingest_base_data >> update_low_watermark_processed >> update_elasticsearch
 
-update_elasticsearch >> end_dag
+update_elasticsearch >> clear_stale_es_data >> end_dag
