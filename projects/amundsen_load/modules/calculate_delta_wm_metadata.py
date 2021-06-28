@@ -79,23 +79,32 @@ def create_table_wm_job(**kwargs):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Extract High Watermark from Delta Tables')
-    parser.add_argument('agg_func', type=str, default='max', 
+    parser.add_argument('--agg_func', type=str, default='max', 
                         help='aggregation function for datetime col (min/max)')
 
-    parser.add_argument('watermark_type', type=str, default='high_watermark',
+    parser.add_argument('--watermark_type', type=str, default='high_watermark',
                         choices=['high_watermark', 'low_watermark'],
                         help='choose field where date gets recorded')
+
+    ### Need to finish off adding args for template dict sections
+    ## values other than default for delta and spark lake doesn't matter as we don't have a
+    # cluster -> database -> schema level structure just cluster -> schema
+    parser.add_argument('--database', type=str, default='default')
+    
+    # change this to move between raw / processed / clean
+    parser.add_argument('--schema', type=str, default='default')
 
     args = parser.parse_args()
 
     LOGGER.info("agg_func: {0}, watermark: {1}".format(args.agg_func, args.watermark_type))
+    LOGGER.info("database: {0}, schema: {1}".format(args.database, args.schema))
 
     templates_dict={'agg_func': args.agg_func,
                     'watermark_type': '{mark}'.format(mark=args.watermark_type),
-                    'database': 'default',
-                    'schema': 'default',
+                    'database': args.database,
+                    'schema': args.schema,
                     'cluster': 'my_delta_environment',
-                    'extract_table_list': "SHOW TABLES"}
+                    'extract_table_list': "SHOW TABLES IN " + args.schema}
     
 
     create_table_wm_job(
