@@ -27,7 +27,7 @@ class SQLAlchemyBatchExtractor(Extractor):
     CLUSTER = 'my_delta_environment'
 
     DEFAULT_CONFIG = ConfigFactory.from_dict(
-        {EXTRACT_TBL_LIST_QRY: "SHOW TABLES"}
+        {EXTRACT_TBL_LIST_QRY: "SHOW TABLES IN {0}".format(SCHEMA)}
     )
 
     def init(self, conf: ConfigTree) -> None:
@@ -35,7 +35,7 @@ class SQLAlchemyBatchExtractor(Extractor):
         self.conf = conf.with_fallback(SQLAlchemyBatchExtractor.DEFAULT_CONFIG)
         self.conn_string = conf.get_string(SQLAlchemyBatchExtractor.CONN_STRING)
 
-        self.extract_tbl_list = conf.get_string(SQLAlchemyBatchExtractor.EXTRACT_TBL_LIST_QRY) 
+        #= conf.get_string(SQLAlchemyBatchExtractor.EXTRACT_TBL_LIST_QRY) 
         self.timestamp_extractor = conf.get_string(SQLAlchemyBatchExtractor.TIMESTAMP_EXTRACTOR)
 
         self.database = conf.get_string(SQLAlchemyBatchExtractor.DATABASE)
@@ -43,6 +43,8 @@ class SQLAlchemyBatchExtractor(Extractor):
         self.part_type = conf.get_string(SQLAlchemyBatchExtractor.PART_TYPE)
         self.cluster  = conf.get_string(SQLAlchemyBatchExtractor.CLUSTER)
 
+        self.extract_tbl_list = "SHOW TABLES IN {0}".format(conf.get_string(SQLAlchemyBatchExtractor.SCHEMA))
+        
         # Not quite sure what model_class is
         model_class = conf.get('model_class', None)
         if model_class:
