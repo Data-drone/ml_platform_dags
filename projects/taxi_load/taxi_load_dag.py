@@ -175,7 +175,7 @@ create_green_merged = SparkSubmitOperator(
     py_files=AIRFLOW_PATH + '/taxi_load/utils/spark_setup.py',
     packages='io.delta:delta-core_2.12:1.0.0,org.apache.hadoop:hadoop-aws:3.2.0',
     name='create_green_merged',
-    execution_timeout=timedelta(minutes=5),
+    #execution_timeout=timedelta(minutes=5),
     driver_memory='6g',
     executor_memory='6g',
     num_executors=2,
