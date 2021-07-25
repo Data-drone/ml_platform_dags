@@ -14,6 +14,14 @@ yellow_pre_2015_tables.write.format("delta").mode("overwrite") \
 
 yellow_2015_2016_h1 = spark.sql("select * from raw.yellow_taxi_2015_2016_h1")
 
+## some columns got renamed so we need to fix
+yellow_2015_2016_h1 = yellow_2015_2016_h1 \
+    .withColumnRenamed("VendorID", "vendor_id") \
+    .withColumnRenamed("tpep_pickup_datetime", "pickup_datetime") \
+    .withColumnRenamed("tpep_dropoff_datetime", "dropoff_datetime") \
+    .withColumnRenamed("RatecodeID", "rate_code")
+    
+
 yellow_2015_2016_h1.write.format("delta").mode("append") \
     .option("mergeSchema", "true").saveAsTable("raw.yellow_merged")
 
