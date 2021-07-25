@@ -137,7 +137,7 @@ h2_2015_2016_h1_green = [
 
 load_h2_2015_2016_h1_green = []
 for i, file in enumerate(h2_2015_2016_h1_green):
-    h2_2015_2016_h1_green.append( PythonOperator(
+    load_h2_2015_2016_h1_green.append( PythonOperator(
         task_id='load_data_to_minio_green_2015_h2-2016-h1' + str(i),
         python_callable=load_data_to_minio,
         op_kwargs={'file_to_load': 'trip data/' + file,
