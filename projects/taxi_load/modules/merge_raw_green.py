@@ -15,3 +15,8 @@ green_2015_h1 = spark.sql("select * from raw.green_taxi_2015_h1")
 
 green_2015_h1.write.format("delta").mode("append") \
     .option("mergeSchema", "true").saveAsTable("raw.green_merged")
+
+green_2015_h2_2016_h1 = spark.sql("select * from raw.green_taxi_2015_h2_2016_h1")
+
+green_2015_h2_2016_h1.write.format("delta").mode("append") \
+    .option("mergeSchema", "true").saveAsTable("raw.green_merged")
