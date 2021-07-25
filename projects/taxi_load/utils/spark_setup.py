@@ -35,8 +35,8 @@ def get_spark():
             .config("spark.hive.metastore.uris", "thrift://"+os.environ['HIVE_METASTORE_ADDRESS']+":9083")
 
     # setting this to make sure that we get better shuffle behaviour
-    spark.conf.set("spark.sql.shuffle.partitions", spark.sparkContext.defaultParallelism*4)
-
+    #spark.conf.set("spark.sql.shuffle.partitions", spark.sparkContext.defaultParallelism*4)
+    # We can't here as we haven't created the session yet
 
     return spark
         

@@ -7,6 +7,8 @@ spark = spark \
     .enableHiveSupport() \
     .getOrCreate()
 
+spark.conf.set("spark.sql.shuffle.partitions", spark.sparkContext.defaultParallelism*4)
+
 green_trip_2015_table = spark.sql("select * from raw.green_taxi_pre2015")
 
 green_trip_2015_table.write.format("delta").mode("overwrite").saveAsTable("raw.green_merged")

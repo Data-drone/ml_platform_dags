@@ -7,6 +7,8 @@ spark = spark \
     .enableHiveSupport() \
     .getOrCreate()
 
+spark.conf.set("spark.sql.shuffle.partitions", spark.sparkContext.defaultParallelism*4)
+
 clean_green = spark.sql("select * from clean.green_clean")
 clean_yellow = spark.sql("select * from clean.yellow_clean")
 

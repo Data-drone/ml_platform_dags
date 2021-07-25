@@ -13,6 +13,8 @@ spark = spark \
     .enableHiveSupport() \
     .getOrCreate()
 
+spark.conf.set("spark.sql.shuffle.partitions", spark.sparkContext.defaultParallelism*4)
+
 def process_table(read_path: str, table_name: str):
     #green_trip_data_pre2015_path = "s3a://storage/raw_data/green_tripdata_201[3-4]*.csv"
     raw_data = spark.read.option("header", True).csv(read_path)

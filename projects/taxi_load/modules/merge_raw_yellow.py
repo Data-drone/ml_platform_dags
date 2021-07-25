@@ -7,6 +7,8 @@ spark = spark \
     .enableHiveSupport() \
     .getOrCreate()
 
+spark.conf.set("spark.sql.shuffle.partitions", spark.sparkContext.defaultParallelism*4)
+
 yellow_pre_2015_tables = spark.sql("select * from raw.yellow_taxi_pre2015")
 
 yellow_pre_2015_tables.write.format("delta").mode("overwrite") \

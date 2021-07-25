@@ -8,6 +8,8 @@ spark = spark \
     .enableHiveSupport() \
     .getOrCreate()
 
+spark.conf.set("spark.sql.shuffle.partitions", spark.sparkContext.defaultParallelism*4)
+
 green_merged = spark.sql("select * from raw.green_merged")
 
 green_processed = green_merged \
