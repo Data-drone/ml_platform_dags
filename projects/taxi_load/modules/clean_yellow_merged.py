@@ -24,6 +24,7 @@ yellow_processed = yellow_merged \
     .withColumn('dropoff_latitude', F.col('dropoff_latitude').cast('float')) \
     .withColumn('payment_type', F.col('payment_type').cast('integer')) \
     .withColumn('fare_amount', F.col('fare_amount').cast('float')) \
+    .withColumn('extra', F.col('extra').cast('float')) \
     .withColumn('improvement_surcharge', F.col('surcharge').cast('float')) \
     .withColumn('mta_tax', F.col('mta_tax').cast('float')) \
     .withColumn('tip_amount', F.col('tip_amount').cast('float')) \
