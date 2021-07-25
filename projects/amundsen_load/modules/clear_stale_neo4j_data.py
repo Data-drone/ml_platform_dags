@@ -36,7 +36,7 @@ def create_metadata_stale_remover_job(neo4j_endpoint, neo4j_user, neo4j_password
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument("--days_since_update", metavar='days', type=float, default=3,
+    parser.add_argument("-d", "--days", type=int, default=3,
                         help="Days since last update to retain")
 
     args = parser.parse_args()

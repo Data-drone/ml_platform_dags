@@ -4,7 +4,7 @@ FROM openjdk:8u242-jre
 ## Could try for python 3.8 to line up with everything else?
 RUN apt-get update && \
     apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev \
-        libssl-dev libsqlite3-dev libreadline-dev libffi-dev tk-dev curl libbz2-dev
+        libssl-dev libsqlite3-dev libreadline-dev libffi-dev tk-dev curl libbz2-dev liblzma-dev
     
 WORKDIR /opt
 RUN curl -O https://www.python.org/ftp/python/3.8.10/Python-3.8.10.tgz && \

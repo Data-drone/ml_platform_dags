@@ -71,6 +71,8 @@ def profile_deltalake_tables(neo4j_endpoint: str, neo4j_user: str, neo4j_passwor
 
     df = spark.sql("select * from {schema}.{table} TABLESAMPLE (100000 ROWS)".format(schema=schema, table=table))
     
+    df.printSchema()
+
     df = df.toPandas()
 
     ## select numerics only at the moment the column profiler only supports numerics
