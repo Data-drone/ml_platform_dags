@@ -21,7 +21,6 @@ yellow_2015_2016_h1 = yellow_2015_2016_h1 \
     .withColumnRenamed("tpep_dropoff_datetime", "dropoff_datetime") \
     .withColumnRenamed("RatecodeID", "rate_code")
     
-
 yellow_2015_2016_h1.write.format("delta").mode("append") \
     .option("mergeSchema", "true").saveAsTable("raw.yellow_merged")
 
