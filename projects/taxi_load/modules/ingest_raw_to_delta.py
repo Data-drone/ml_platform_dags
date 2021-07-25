@@ -25,6 +25,11 @@ def process_table(read_path: str, table_name: str):
     raw_fix = raw_data.withColumnRenamed("Trip_type ", "trip_type")
     raw_fix = raw_fix.withColumnRenamed("lpep_pickup_datetime", "pickup_datetime")
     raw_fix = raw_fix.withColumnRenamed("Lpep_dropoff_datetime", "dropoff_datetime")
+
+    # fix yellow table quirks
+    raw_fix = raw_fix \
+        .withColumnRenamed("tpep_pickup_datetime", "pickup_datetime") \
+        .withColumnRenamed("tpep_dropoff_datetime", "dropoff_datetime")
     
     logger.info("Writing Back Data")
 
