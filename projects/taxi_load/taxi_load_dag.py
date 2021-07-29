@@ -243,7 +243,13 @@ for item in load_pre2015_yellow:
 
 ############ 2015-2016_h1 - Yellow #######################
 
-h2_2015_2016_h1_yellow = [
+all_2015_2016_h1_yellow = [
+    "yellow_tripdata_2015-01.csv",
+    "yellow_tripdata_2015-02.csv",
+    "yellow_tripdata_2015-03.csv",
+    "yellow_tripdata_2015-04.csv",
+    "yellow_tripdata_2015-05.csv",
+    "yellow_tripdata_2015-06.csv",
     "yellow_tripdata_2015-07.csv",
     "yellow_tripdata_2015-08.csv",
     "yellow_tripdata_2015-09.csv",
@@ -258,9 +264,9 @@ h2_2015_2016_h1_yellow = [
     "yellow_tripdata_2016-06.csv"
 ]
 
-load_h2_2015_2016_h1_yellow = []
-for i, file in enumerate(h2_2015_2016_h1_yellow):
-    load_h2_2015_2016_h1_yellow.append( PythonOperator(
+load_all_2015_2016_h1_yellow = []
+for i, file in enumerate(all_2015_2016_h1_yellow):
+    load_all_2015_2016_h1_yellow.append( PythonOperator(
         task_id='load_data_to_minio_yellow_2015_2016_h1' + str(i),
         python_callable=load_data_to_minio,
         op_kwargs={'file_to_load': 'trip data/' + file,
@@ -283,12 +289,12 @@ load_delta_h2_2015_2016_h1_yellow = SparkSubmitOperator(
     executor_cores=4,
     num_executors=2,
     #application_args="{0} {1}".format(','.join(h1_2015_green), 'green_taxi_2015_h1'),
-    application_args=['/'.join(h2_2015_2016_h1_yellow), 'yellow_taxi_2015_2016_h1'],
+    application_args=['/'.join(all_2015_2016_h1_yellow), 'yellow_taxi_2015_2016_h1'],
     dag=dag,
     queue='queue_2'
 )
 
-for item in load_h2_2015_2016_h1_yellow:
+for item in load_all_2015_2016_h1_yellow:
     item >> load_delta_h2_2015_2016_h1_yellow
 
 ################################################################
