@@ -78,16 +78,17 @@ def profile_deltalake_tables(neo4j_endpoint: str, neo4j_user: str, neo4j_passwor
     ## select numerics only at the moment the column profiler only supports numerics
     df = df.select_dtypes(include='number')
 
-    report = df.profile_report(sort=None, minimal=True)
-    report.to_file(report_file)
+    if len(df.columns) > 0:
+        report = df.profile_report(sort=None, minimal=True)
+        report.to_file(report_file)
 
-    ppExtractor = PandasProfilingColumnStatsExtractor()
-
-    job = DefaultJob(conf=job_config,
-                     task=DefaultTask(extractor=ppExtractor, loader=FsNeo4jCSVLoader()),
-                    publisher=Neo4jCsvPublisher())
-
-    job.launch()
+        ppExtractor = PandasProfilingColumnStatsExtractor()
+    
+        job = DefaultJob(conf=job_config,
+                         task=DefaultTask(extractor=ppExtractor, loader=FsNeo4jCSVLoader()),
+                        publisher=Neo4jCsvPublisher())
+    
+        job.launch()
 
     spark.stop()
 
